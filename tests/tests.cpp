@@ -15,7 +15,9 @@
 #include <stdexcept>
 #include <string_view>
 
+int check_count = 0;
 void check(bool condition, std::string_view description) {
+    ++check_count;
     if (!condition) throw std::runtime_error(std::string(description));
 }
 void cpu_tests() {
@@ -86,6 +88,13 @@ void process_parser_tests() {
     check(parse_process_stat(process_fixture()+" 0 0 0",42).value.has_value(), "trailing stat fields");
     check(!parse_process_stat("42 (broken) S 1",42), "truncated stat");
     check(!parse_process_stat("42 broken S 1",42), "missing name delimiters");
+    auto malformed = process_fixture();
+    malformed.replace(malformed.find(" S ")+1,1,"\x1b");
+    check(!parse_process_stat(malformed,42), "control byte state rejected");
+    malformed = process_fixture();
+    malformed.replace(malformed.rfind(" 3"),2," bad");
+    check(!parse_process_stat(malformed,42), "malformed RSS rejected");
+    check(parse_process_stat(process_fixture("a\nb"),42).value->name == "a\nb", "newline in process name");
     check(parse_process_stat(process_fixture("x",42,101),42).value->identity != p.value->identity, "PID reuse identity");
     check(parse_uid("Name: a\nUid: 1 2 3 4") == 2, "effective UID");
     check(!parse_uid("Uid: 1 bad 3 4") && !parse_uid("Name: x"), "missing malformed UID");
@@ -160,7 +169,8 @@ void details_tests() {
     check(d.state == DetailState::valid && d.arguments == args, "details fixture");
     check(monitor.read_details({42,101},1000).state == DetailState::gone, "details stale identity");
     std::filesystem::permissions(path/"42"/"cmdline", std::filesystem::perms::none);
-    check(monitor.read_details({42,100},1000).state == DetailState::unavailable, "permission denial details");
+    auto denied = monitor.read_details({42,100},1000);
+    check(denied.state == DetailState::unavailable && denied.start_time != "unavailable", "permission denial preserves available start time");
     std::filesystem::permissions(path/"42"/"cmdline", std::filesystem::perms::owner_all);
     { std::ofstream(path/"42"/"cmdline") << ""; }
     check(monitor.read_details({42,100},1000).arguments.empty(), "empty details distinct");
@@ -271,6 +281,15 @@ void live_tests() {
     check(self, "own process visible");
     auto snapshot = processes.sample();
     auto again = processes.sample();
+    const auto busy_until = Clock::now()+std::chrono::milliseconds(150);
+    Counter iterations{};
+    while (Clock::now()<busy_until) ++iterations;
+    auto loaded = processes.sample();
+    check(iterations>0, "controlled CPU workload ran");
+    bool measured = false;
+    for (const auto& row : loaded.rows) if(row.record.stat.identity.pid == ::getpid())
+        measured = row.cpu.state == Availability::valid && row.cpu.value > 0;
+    check(measured, "live CPU workload measured");
     check(snapshot.error.empty() && !again.rows.empty(), "live process snapshots");
     for (const auto& row : snapshot.rows) if (row.record.stat.identity.pid == ::getpid())
         check(row.user == resolve_user(::geteuid()), "live user lookup");
@@ -287,7 +306,7 @@ int main(int argc, char**) {
         presentation_tests();
         sampling_tests();
         if (argc > 1) live_tests();
-        std::cout << "All checks passed\n";
+        std::cout << check_count << " checks passed\n";
         return 0;
     } catch (const std::exception& error) {
         std::cerr << "FAIL: " << error.what() << '\n';

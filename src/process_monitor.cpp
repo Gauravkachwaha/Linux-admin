@@ -117,13 +117,6 @@ ProcessDetails ProcessMonitor::read_details(ProcessIdentity identity, std::optio
     if (!verify()) return details;
     const auto command = detail::read_file("cmdline",directory.get());
     if (!verify()) return details;
-    if (!command) {
-        details.state = gone(command.error_number) ? DetailState::gone : DetailState::unavailable;
-        details.error = command.error;
-        return details;
-    }
-    details.state = DetailState::valid;
-    details.arguments = parse_cmdline(*command.value);
     std::optional<double> boot;
     bool approximate = false;
     if (boot_time) boot = static_cast<double>(*boot_time);
@@ -143,6 +136,13 @@ ProcessDetails ProcessMonitor::read_details(ProcessIdentity identity, std::optio
         const auto epoch = start_epoch(identity.start_ticks,constants_.ticks,*boot);
         if (epoch) details.start_time = format_start(*epoch) + (approximate ? " (approximate)" : "");
     }
+    if (!command) {
+        details.state = gone(command.error_number) ? DetailState::gone : DetailState::unavailable;
+        details.error = command.error;
+        return details;
+    }
+    details.state = DetailState::valid;
+    details.arguments = parse_cmdline(*command.value);
     return details;
 }
 }

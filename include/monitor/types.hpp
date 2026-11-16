@@ -67,7 +67,7 @@ struct ProcessDetails {
     ProcessIdentity identity;
     DetailState state{DetailState::unavailable};
     std::vector<std::string> arguments;
-    std::string start_time;
+    std::string start_time{"unavailable"};
     std::string error;
 };
 }

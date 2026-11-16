@@ -38,7 +38,11 @@ TerminalUI::TerminalUI() {
     if (!screen) throw std::runtime_error("cannot initialize ncurses; check TERM and terminfo");
     screen_ = screen;
     set_term(screen);
-    cbreak(); noecho(); keypad(stdscr,TRUE); curs_set(0);
+    if (cbreak() == ERR || noecho() == ERR || keypad(stdscr,TRUE) == ERR) {
+        endwin(); delscreen(screen); screen_ = nullptr;
+        throw std::runtime_error("cannot configure terminal input");
+    }
+    curs_set(0);
     set_escdelay(25);
 }
 TerminalUI::~TerminalUI() {
@@ -55,6 +59,7 @@ void TerminalUI::update(const ProcessSnapshot& processes) {
 }
 bool TerminalUI::handle_input(int key, const ProcessSnapshot& processes) {
     if (key == ERR || key == KEY_RESIZE) return true;
+    if (COLS < 80 || LINES < 24) return key != 'q';
     if (editing_) {
         if (key == 27 || key == '\n' || key == KEY_ENTER) editing_ = false;
         else if (key == KEY_BACKSPACE || key == 127 || key == 8) { if (!options_.filter.empty()) options_.filter.pop_back(); }
@@ -128,11 +133,14 @@ void TerminalUI::render(const SystemSnapshot& system, const ProcessSnapshot& pro
             content.push_back("Name: "+safe_text(s.name));
             content.push_back("User: "+safe_text(row->user)+"  CPU: "+format_percentage(row->cpu)+"  RSS: "+(row->record.rss_bytes ? format_bytes(*row->record.rss_bytes) : "unavailable"));
             if (!details || details->identity != s.identity) content.emplace_back("Details pending");
-            else if (details->state != DetailState::valid) content.push_back((details->state == DetailState::gone ? "Process gone: " : "Details unavailable: ")+safe_text(details->error));
             else {
-                content.push_back("Start: "+details->start_time);
-                content.emplace_back("Command line (quoted arguments):");
-                content.push_back(format_arguments(details->arguments));
+                content.push_back("Start: "+safe_text(details->start_time));
+                if (details->state != DetailState::valid)
+                    content.push_back((details->state == DetailState::gone ? "Process gone: " : "Command line unavailable: ")+safe_text(details->error));
+                else {
+                    content.emplace_back("Command line (quoted arguments):");
+                    content.push_back(format_arguments(details->arguments));
+                }
             }
         }
         std::vector<std::string> wrapped;

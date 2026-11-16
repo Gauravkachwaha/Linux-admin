@@ -12,6 +12,7 @@ import time
 
 
 def exercise(command, exit_signal=None, fixture=False, error=False):
+    owned = subprocess.Popen(['/bin/sleep', '30']) if not fixture and not error else None
     master, slave = pty.openpty()
     fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', 30, 110, 0, 0))
     before = termios.tcgetattr(slave)
@@ -51,13 +52,19 @@ def exercise(command, exit_signal=None, fixture=False, error=False):
             send(b'/no_matching_process_987654\n')
             assert b'No matching processes' in output
             send(b'x')
-            send(b'p100\n' if fixture else b'p1\n')
+            send(b'p100\n' if fixture else f'p{owned.pid}\n'.encode())
             send(b'jd')
             if fixture:
                 assert b'Command line' in output and b'unsafe' in output
                 assert b'unsafe\x1b[31m' not in output, 'untrusted escape reached terminal'
                 send(b'\x1b[6~\x1b[6~\x1b[6~')
                 assert b'END_OF_LONG_ARGUMENT' in output, 'long argument inaccessible'
+            if owned is not None:
+                assert b'Command line' in output and b'Start:' in output
+                owned.terminate()
+                owned.wait(timeout=3)
+                drain(1.3)
+                assert b'no longer available' in output, 'exited process details remained visible'
             send(b'dx')
         fcntl.ioctl(slave, termios.TIOCSWINSZ, struct.pack('HHHH', 10, 40, 0, 0))
         child.send_signal(signal.SIGWINCH)
@@ -75,6 +82,9 @@ def exercise(command, exit_signal=None, fixture=False, error=False):
         assert child.returncode == 0, child.returncode
         assert termios.tcgetattr(slave) == before, 'terminal attributes not restored'
     finally:
+        if owned is not None and owned.poll() is None:
+            owned.terminate()
+            owned.wait(timeout=3)
         if child.poll() is None:
             child.kill()
             child.wait()

@@ -77,6 +77,7 @@ Result<ProcessStat> parse_process_stat(std::string_view text, int expected_pid) 
     std::vector<std::string> fields;
     for (std::string token; suffix >> token;) fields.push_back(std::move(token));
     if (fields.size() < 22 || fields[0].size() != 1 ||
+        fields[0].find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz") != std::string::npos ||
         !number(fields[1], result.ppid) || result.ppid < 0 ||
         !number(fields[11], result.user_ticks) || !number(fields[12], result.system_ticks) ||
         !number(fields[17], result.threads) || !number(fields[19], result.identity.start_ticks) ||

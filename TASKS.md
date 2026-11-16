@@ -12,12 +12,14 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 10 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 11 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
-**Status:** Completed  
-**Dependencies:** None; approved documents and Linux/toolchain prerequisites.  
+**Status:** Completed
+
+**Dependencies:** None; approved documents and Linux/toolchain prerequisites.
+
 **Evidence / blockers:** GCC 15.2, CMake 4.2.3, Ubuntu 26.04; ncurses 6.6 headers extracted under /tmp without root. Configure/build and CTest passed; intentional runner failure was detected, removed, and retested. Non-root executable smoke passed. No blockers.
 
 - [x] Verify and record the Linux, C++20 compiler, CMake/CTest, and ncurses development environment.
@@ -32,8 +34,10 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 2 — CPU Data Parsing and Calculations
 
-**Status:** Completed  
-**Dependencies:** Milestone 1.  
+**Status:** Completed
+
+**Dependencies:** Milestone 1.
+
 **Evidence / blockers:** Pure CPU fixtures cover guest accounting, core IDs/changes, first/invalid samples, malformed fields and overflow. Warning-clean build, CTest and executable smoke passed. No blockers.
 
 - [x] Add CPU counter and valid/pending/unavailable value types; convert the core target to a compiled library.
@@ -48,8 +52,10 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 3 — Memory Monitoring
 
-**Status:** Completed  
-**Dependencies:** Milestones 1–2.  
+**Status:** Completed
+
+**Dependencies:** Milestones 1–2.
+
 **Evidence / blockers:** RAM/swap fixture calculations, independent validity, zero swap, units, malformed/duplicate/missing fields and overflow passed. Configure/build and full CTest passed without warnings. No blockers.
 
 - [x] Parse RAM total/available and swap total/free fields with unit validation.
@@ -63,8 +69,10 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 4 — SystemMonitor Integration
 
-**Status:** Completed  
-**Dependencies:** Milestones 2–3.  
+**Status:** Completed
+
+**Dependencies:** Milestones 2–3.
+
 **Evidence / blockers:** SystemMonitor recovery/core-pruning tests passed. Non-root live test read CPU/memory twice and compared total RAM directly with /proc/meminfo. Configure/build and both CTest entries passed, no warnings or blockers.
 
 - [x] Implement scoped read-only system-source collection, once per source per sample.
@@ -79,8 +87,10 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 5 — Process Parsing and Identity
 
-**Status:** Completed  
-**Dependencies:** Milestones 1–4.  
+**Status:** Completed
+
+**Dependencies:** Milestones 1–4.
+
 **Evidence / blockers:** Process parser/identity, effective UID, page conversion, invalid constants and fixture collection checks passed. Fixture disappearance/missing status and non-root live enumeration (including self) verified. Warning-clean build and both CTest entries passed. No blockers.
 
 - [x] Enumerate numeric `/proc` directories and establish ProcessMonitor's scoped collection foundation.
@@ -96,8 +106,10 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 6 — Process CPU Usage and Monitoring
 
-**Status:** Completed  
-**Dependencies:** Milestone 5; sampling conventions from Milestones 2 and 4.  
+**Status:** Completed
+
+**Dependencies:** Milestone 5; sampling conventions from Milestones 2 and 4.
+
 **Evidence / blockers:** Process CPU/state tests cover 200%, elapsed times, overflow/regression, PID reuse, pruning and recovery; UID fallback checked. Repeated live snapshots/user resolution passed (live suite under 0.2s here). Warning-clean build and full CTest passed; synchronous NSS can still delay scans.
 
 - [x] Calculate process CPU% from successive ticks and actual per-process monotonic timestamps adjacent to reads.
@@ -113,8 +125,10 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 7 — Process Details
 
-**Status:** Completed  
-**Dependencies:** Milestones 4–6.  
+**Status:** Completed
+
+**Dependencies:** Milestones 4–6.
+
 **Evidence / blockers:** Details tests passed for argument boundaries/long data, permission denial, gone/malformed/empty states, identity mismatch, ticks/time overflow and uptime fallback. Warning-clean build and both CTest entries passed. Terminal rendering remains scheduled for milestone 9.
 
 - [x] Read complete selected-process `cmdline` contents with directory-relative access and identity revalidation.
@@ -130,8 +144,10 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 8 — Sorting, Filtering, and Selection
 
-**Status:** Completed  
-**Dependencies:** Milestone 6; Milestone 7 for details invalidation.  
+**Status:** Completed
+
+**Dependencies:** Milestone 6; Milestone 7 for details invalidation.
+
 **Evidence / blockers:** Pure view tests passed for all sort directions, ties/unavailable values, both filters, invalid/empty queries, reordered/hidden/gone/reused selections. Configure/build and full CTest passed without ncurses linkage or warnings. No blockers.
 
 - [x] Extract small pure view helpers independent of ncurses, as allowed by the roadmap.
@@ -147,8 +163,10 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 9 — ncurses Terminal Interface
 
-**Status:** Completed  
-**Dependencies:** Milestones 4 and 6–8.  
+**Status:** Completed
+
+**Dependencies:** Milestones 4 and 6–8.
+
 **Evidence / blockers:** Warning-clean build and core/live/PTY CTest suites passed. Interactive terminal inspection checked table/details/help; repeatable PTY checks cover filters/sorts/navigation, long argument scrolling, safe text, source errors, resize, quit/SIGINT/SIGTERM and exact termios restoration. No blockers; continuous sampling follows in milestone 10.
 
 - [x] Implement RAII ncurses/window ownership and clear initialization errors; restrict ncurses linkage to presentation/application targets.
@@ -166,8 +184,10 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 10 — Refresh Loop and Integration
 
-**Status:** Completed  
-**Dependencies:** Milestones 4 and 6–9.  
+**Status:** Completed
+
+**Dependencies:** Milestones 4 and 6–9.
+
 **Evidence / blockers:** Core/live/PTY suites passed, including CPU refresh while filtering and deadline/reset tests. A 12-second live churn check created 57 processes: monitor RSS stayed 5892 KiB and FDs stayed 3; SIGTERM restored terminal attributes. Build warning-clean; synchronous collection/NSS latency remains an architectural limitation.
 
 - [x] Connect monitors/UI with one-second monotonic deadlines and input waits capped at 100 ms.
@@ -185,19 +205,42 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 11 — Final Verification and Documentation
 
-**Status:** Not Started  
-**Dependencies:** Milestones 1–10.  
-**Evidence / blockers:** Not yet assessed.
+**Status:** Completed
 
-- [ ] Run a clean warning-free build, full CTest suite including release mode, and non-root launch checks.
-- [ ] Review RAII ownership, descriptor cleanup, caches/baselines, and arithmetic guards.
-- [ ] Map every PRD acceptance criterion to recorded automated/manual evidence; identify any unmet criterion.
-- [ ] Verify disappearance and PID reuse deterministically; exercise denied reads and unavailable-data presentation.
-- [ ] Perform sustained live monitoring with process churn and inspect memory/resource trends.
-- [ ] Manually verify required fields/workflows, long details, resizing, quit, SIGINT, and SIGTERM.
-- [ ] Write README build/test/run instructions, dependencies/toolchain, keys, metric definitions, architecture links, and limitations.
-- [ ] Verify documented commands and consistency with actual read-only behavior.
-- [ ] Resolve identified in-scope defects and rerun affected checks; record unresolved blockers honestly.
-- [ ] Update tracker evidence/status and report final verification without starting additional work.
+**Dependencies:** Milestones 1–10.
+
+**Evidence / blockers:** Default, clean Release, and ASan/UBSan builds passed all three CTest suites. 117 core checks / 126 including live checks passed; PTY process-exit, resize and shutdown checks passed. 60-second churn results and all PRD acceptance mappings appear below. README commands verified; no blocking defects.
+
+- [x] Run a clean warning-free build, full CTest suite including release mode, and non-root launch checks.
+- [x] Review RAII ownership, descriptor cleanup, caches/baselines, and arithmetic guards.
+- [x] Map every PRD acceptance criterion to recorded automated/manual evidence; identify any unmet criterion.
+- [x] Verify disappearance and PID reuse deterministically; exercise denied reads and unavailable-data presentation.
+- [x] Perform sustained live monitoring with process churn and inspect memory/resource trends.
+- [x] Manually verify required fields/workflows, long details, resizing, quit, SIGINT, and SIGTERM.
+- [x] Write README build/test/run instructions, dependencies/toolchain, keys, metric definitions, architecture links, and limitations.
+- [x] Verify documented commands and consistency with actual read-only behavior.
+- [x] Resolve identified in-scope defects and rerun affected checks; record unresolved blockers honestly.
+- [x] Update tracker evidence/status and report final verification without starting additional work.
 
 **Definition of Done:** All PRD acceptance criteria pass with recorded evidence, verified README instructions, and no unresolved completion blockers or out-of-scope behavior. Any incomplete required check keeps this milestone open.
+
+## Final verification evidence
+
+Validation runs as UID 1000 on Ubuntu 26.04, GCC 15.2, CMake 4.2.3, ncurses 6.6. The matching ncurses development package was extracted under `/tmp` without installing system packages; README documents the build-cache overrides and standard dependencies.
+
+| PRD acceptance criterion | Verification evidence |
+| --- | --- |
+| 1 — Build and ordinary-user ncurses launch | Default and clean Release CMake builds; live PTY application launches. |
+| 2 — Overall/per-core CPU correctness | Known counter pairs, guest exclusion, first/invalid samples, overflow and core-change checks in `core`; controlled live CPU workload. |
+| 3 — RAM/swap correctness | Deterministic units, totals, missing/malformed fields, no-swap and independent-validity checks; live RAM total compared with source. |
+| 4 — Process fields/parsing | Complex names, newline/parentheses, field positions, malformed/trailing data, UID/RSS conversion fixtures; live self-process discovery. |
+| 5 — Process CPU/details | 200% fixture, elapsed/tick conversions, PID reuse, overflow, start epoch/fallback, denied/empty/long command lines; PTY details scrolling. |
+| 6 — Sort/filter correctness | Both directions and tie/unavailable rules, PID/name modes, settings persistence and identity reconciliation; PTY keyboard interaction. |
+| 7 — Refresh and input | Deadline tests and live PTY refresh during active filter editing; normal navigation and details remain usable. |
+| 8 — Churn and access errors | Fixture disappearance, status absence, permission-denied command line, malformed/reused identity tests; selected live process exit clears details. |
+| 9 — Resize/shutdown/resources | Interactive inspection plus repeatable PTY resize/quit/SIGINT/SIGTERM checks with exact termios comparison; 60-second churn observation. |
+| 10 — Tests and read-only behavior | Full CTest, Release and ASan/UBSan checks; source review confirms no command execution or process-control operations in application code. |
+
+The core executable reports 117 deterministic checks; live mode reports 126 checks. CTest groups these into `core`, `live`, and optional Python-backed `terminal` suites. The 60-second soak created 289 short-lived test processes: RSS stayed 5,832 KiB after warm-up; sampled file-descriptor counts ranged 3–6 during reads without accumulation; shutdown restored terminal attributes. The earlier 12-second check is preserved under Milestone 10.
+
+Final review fixed a denied-command-line read hiding an otherwise available start time, rejected malformed process-state control bytes, and checked terminal-input initialization errors. Regression tests cover these changes; previous milestone evidence remains intact. No known blocking defects remain. Limitations are synchronous `/proc`/NSS latency, non-atomic/permission-limited snapshots, kernel-reported RSS/name precision, temporary local header paths, and finite-duration resource verification. See README for details.
