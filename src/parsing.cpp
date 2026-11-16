@@ -1,6 +1,8 @@
 #include "monitor/parsing.hpp"
 #include <charconv>
 #include <sstream>
+#include <limits>
+#include <set>
 
 namespace monitor {
 namespace {
@@ -35,5 +37,29 @@ Result<CpuSample> parse_cpu(std::string_view text) {
     }
     if (!sample.cpus.contains(-1)) return {{}, "missing aggregate CPU"};
     return {sample, {}};
+}
+MemoryFields parse_memory(std::string_view text) {
+    MemoryFields result;
+    std::set<std::string> seen;
+    std::istringstream input{std::string(text)};
+    for (std::string line; std::getline(input, line);) {
+        std::istringstream fields(line);
+        std::string key, token, unit, extra;
+        fields >> key;
+        std::optional<Counter>* destination = nullptr;
+        if (key == "MemTotal:") destination = &result.total;
+        if (key == "MemAvailable:") destination = &result.available;
+        if (key == "SwapTotal:") destination = &result.swap_total;
+        if (key == "SwapFree:") destination = &result.swap_free;
+        if (!destination) continue;
+        Counter value{};
+        if (!seen.insert(key).second || !(fields >> token >> unit) || unit != "kB" ||
+            fields >> extra || !number(token, value) || value > std::numeric_limits<Counter>::max()/1024) {
+            destination->reset();
+            continue;
+        }
+        *destination = value * 1024;
+    }
+    return result;
 }
 }

@@ -12,7 +12,7 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 2 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 3 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
@@ -48,16 +48,16 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 3 — Memory Monitoring
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** Milestones 1–2.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** RAM/swap fixture calculations, independent validity, zero swap, units, malformed/duplicate/missing fields and overflow passed. Configure/build and full CTest passed without warnings. No blockers.
 
-- [ ] Parse RAM total/available and swap total/free fields with unit validation.
-- [ ] Convert kB to bytes with overflow checks and calculate used values with checked subtraction.
-- [ ] Keep RAM/swap validity independent and represent zero-swap systems correctly.
-- [ ] Test known values, no swap, missing fields, incorrect units, malformed numbers, overflow, and inconsistent totals.
-- [ ] Verify invalid RAM does not invalidate valid swap and vice versa.
-- [ ] Build, run all tests including CPU regressions, and record the milestone report.
+- [x] Parse RAM total/available and swap total/free fields with unit validation.
+- [x] Convert kB to bytes with overflow checks and calculate used values with checked subtraction.
+- [x] Keep RAM/swap validity independent and represent zero-swap systems correctly.
+- [x] Test known values, no swap, missing fields, incorrect units, malformed numbers, overflow, and inconsistent totals.
+- [x] Verify invalid RAM does not invalidate valid swap and vice versa.
+- [x] Build, run all tests including CPU regressions, and record the milestone report.
 
 **Definition of Done:** Deterministic memory tests pass with consistent units, independent error states, and no fabricated zero values or division errors.
 

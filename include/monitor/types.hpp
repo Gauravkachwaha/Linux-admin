@@ -23,4 +23,9 @@ struct CpuSample {
     std::map<int, CpuCounters> cpus;
     std::optional<Counter> boot_time;
 };
+struct MemoryFields {
+    std::optional<Counter> total, available, swap_total, swap_free;
+};
+struct MemoryUsage { Counter total{}, used{}, free{}; };
+struct MemorySnapshot { Result<MemoryUsage> ram, swap; };
 }

@@ -29,9 +29,25 @@ void cpu_tests() {
     check(!parse_cpu("cpu 0 0 0 0 0 0 0 0\ncpu 0 0 0 0 0 0 0 0"), "duplicate core");
     check(a.value->cpus.size() == 2 && b.value->cpus.size() == 3, "core changes");
 }
+void memory_tests() {
+    using namespace monitor;
+    auto m = memory_usage(parse_memory("MemTotal: 100 kB\nMemAvailable: 40 kB\nSwapTotal: 20 kB\nSwapFree: 5 kB\n"));
+    check(m.ram && m.swap && m.ram.value->used == 60*1024 && m.swap.value->used == 15*1024, "memory calculations");
+    m = memory_usage(parse_memory("SwapTotal: 0 kB\nSwapFree: 0 kB"));
+    check(!m.ram && m.swap && m.swap.value->used == 0, "independent no swap");
+    m = memory_usage(parse_memory("MemTotal: 100 kB\nMemAvailable: 40 kB\nSwapTotal: 1 kB\nSwapFree: 2 kB"));
+    check(m.ram && !m.swap, "invalid swap independent");
+    for (auto bad : {"-1", "oops", "18446744073709551616", "18446744073709551615"})
+        check(!parse_memory(std::string("MemTotal: ")+bad+" kB").total, "invalid memory number");
+    check(!parse_memory("MemTotal: 10 MB").total, "wrong unit");
+    check(!parse_memory("MemTotal: 10 kB extra").total, "unexpected suffix");
+    check(!parse_memory("MemTotal: 10 kB\nMemTotal: 20 kB").total, "duplicate field");
+    check(!memory_usage(parse_memory("MemTotal: 1 kB\nMemAvailable: 2 kB")).ram, "invalid available");
+}
 int main() {
     try {
         cpu_tests();
+        memory_tests();
         std::cout << "All checks passed\n";
         return 0;
     } catch (const std::exception& error) {

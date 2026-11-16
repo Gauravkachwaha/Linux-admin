@@ -20,4 +20,12 @@ Percentage cpu_usage(const CpuCounters& current, const CpuCounters* previous) {
     if (elapsed == 0 || idle > elapsed) return {};
     return {Availability::valid, 100.0 * static_cast<double>(elapsed - idle) / static_cast<double>(elapsed)};
 }
+MemorySnapshot memory_usage(const MemoryFields& fields) {
+    const auto group = [](std::optional<Counter> total, std::optional<Counter> free) -> Result<MemoryUsage> {
+        if (!total || !free) return {{}, "missing/invalid memory field"};
+        if (*free > *total) return {{}, "free/available exceeds total"};
+        return {MemoryUsage{*total, *total - *free, *free}, {}};
+    };
+    return {group(fields.total, fields.available), group(fields.swap_total, fields.swap_free)};
+}
 }
