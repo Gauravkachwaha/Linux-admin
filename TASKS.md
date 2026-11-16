@@ -12,7 +12,7 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 9 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 10 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
@@ -166,20 +166,20 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 10 — Refresh Loop and Integration
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** Milestones 4 and 6–9.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** Core/live/PTY suites passed, including CPU refresh while filtering and deadline/reset tests. A 12-second live churn check created 57 processes: monitor RSS stayed 5892 KiB and FDs stayed 3; SIGTERM restored terminal attributes. Build warning-clean; synchronous collection/NSS latency remains an architectural limitation.
 
-- [ ] Connect monitors/UI with one-second monotonic deadlines and input waits capped at 100 ms.
-- [ ] Skip missed deadlines, keep filtering nonblocking, and avoid source reads for ordinary navigation.
-- [ ] Replace snapshots and reconcile selection/settings through refresh and resize.
-- [ ] Fetch only open selected details per sampling cycle or selection change and discard obsolete details.
-- [ ] Check shutdown between reads; bound baselines, caches, and view retention to current data.
-- [ ] Settle timing-discontinuity detection and reset affected baselines when detected.
-- [ ] Test deadline advancement, delayed cycles, selection/replacement transitions, and resets with explicit time inputs.
-- [ ] Manually verify cadence, input responsiveness, process churn, details invalidation, resize, and shutdown.
-- [ ] Inspect repeated-scan state/file-descriptor retention and record synchronous I/O/UID lookup limitations.
-- [ ] Build, run all tests, and record the milestone report.
+- [x] Connect monitors/UI with one-second monotonic deadlines and input waits capped at 100 ms.
+- [x] Skip missed deadlines, keep filtering nonblocking, and avoid source reads for ordinary navigation.
+- [x] Replace snapshots and reconcile selection/settings through refresh and resize.
+- [x] Fetch only open selected details per sampling cycle or selection change and discard obsolete details.
+- [x] Check shutdown between reads; bound baselines, caches, and view retention to current data.
+- [x] Settle timing-discontinuity detection and reset affected baselines when detected.
+- [x] Test deadline advancement, delayed cycles, selection/replacement transitions, and resets with explicit time inputs.
+- [x] Manually verify cadence, input responsiveness, process churn, details invalidation, resize, and shutdown.
+- [x] Inspect repeated-scan state/file-descriptor retention and record synchronous I/O/UID lookup limitations.
+- [x] Build, run all tests, and record the milestone report.
 
 **Definition of Done:** MVP workflows operate together without root, normal input stays responsive, retained state does not accumulate, and individual failures do not stop unaffected monitoring.
 

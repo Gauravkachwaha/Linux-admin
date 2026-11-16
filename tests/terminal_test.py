@@ -34,6 +34,13 @@ def exercise(command, exit_signal=None, fixture=False, error=False):
         drain(0.5)
         assert b'Linux Process Monitor' in output, output[-2000:]
         assert b'Overall CPU' in output and b'RAM:' in output and b'Swap:' in output
+        if not fixture and not error:
+            # Leave the filter editor active while multiple sampling deadlines pass.
+            start = len(output)
+            send(b'/')
+            drain(2.2)
+            assert b'%' in output[start:], 'CPU percentages did not refresh during editing'
+            send(b'\n')
         if error:
             assert b'fixture access denied' in output and b'No matching processes' in output
         else:

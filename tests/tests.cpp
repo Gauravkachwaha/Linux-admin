@@ -1,3 +1,4 @@
+#include "monitor/sampling.hpp"
 #include "monitor/presentation.hpp"
 #include "monitor/view_logic.hpp"
 #include "monitor/process_monitor.hpp"
@@ -230,6 +231,28 @@ void presentation_tests() {
     check(lines==std::vector<std::string>({"123","456","7"}), "long text wrapping without loss");
     check(wrap_text("abc",0).empty(), "zero width guarded");
 }
+void sampling_tests() {
+    using namespace monitor;
+    using namespace std::chrono;
+    const Clock::time_point zero{};
+    check(next_deadline(zero,zero)==zero+seconds(1), "first deadline");
+    check(next_deadline(zero,zero+milliseconds(2500))==zero+seconds(3), "skip missed deadlines");
+    check(next_deadline(zero+seconds(1),zero)==zero+seconds(1), "future deadline unchanged");
+    check(input_timeout(zero+seconds(1),zero)==100, "input cap");
+    check(input_timeout(zero+milliseconds(40),zero)==40 && input_timeout(zero,zero)==0, "input until deadline");
+    check(!timing_discontinuity(3,3,3), "delayed scan not discontinuity");
+    check(timing_discontinuity(1,10,10) && timing_discontinuity(1,1,-10), "suspend and clock jumps detected");
+    SystemMonitor system;
+    system.update({"cpu 1 0 0 9 0 0 0 0",{}},{"",{}},zero);
+    system.reset();
+    check(system.update({"cpu 2 0 0 18 0 0 0 0",{}},{"",{}},zero).cpus.at(-1).state==Availability::pending, "system timing reset");
+    ProcessMonitor processes({100,4096});
+    ProcessRecord record;
+    record.stat=*parse_process_stat(process_fixture(),42).value;
+    processes.update({std::vector<ProcessRecord>{record},{}});
+    processes.reset();
+    check(processes.update({std::vector<ProcessRecord>{record},{}}).rows[0].cpu.state==Availability::pending, "process timing reset");
+}
 void live_tests() {
     using namespace monitor;
     SystemMonitor monitor;
@@ -262,6 +285,7 @@ int main(int argc, char**) {
         details_tests();
         view_tests();
         presentation_tests();
+        sampling_tests();
         if (argc > 1) live_tests();
         std::cout << "All checks passed\n";
         return 0;
