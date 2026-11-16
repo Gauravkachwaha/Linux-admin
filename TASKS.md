@@ -12,7 +12,7 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 8 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 9 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
@@ -147,20 +147,20 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 9 — ncurses Terminal Interface
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** Milestones 4 and 6–8.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** Warning-clean build and core/live/PTY CTest suites passed. Interactive terminal inspection checked table/details/help; repeatable PTY checks cover filters/sorts/navigation, long argument scrolling, safe text, source errors, resize, quit/SIGINT/SIGTERM and exact termios restoration. No blockers; continuous sampling follows in milestone 10.
 
-- [ ] Implement RAII ncurses/window ownership and clear initialization errors; restrict ncurses linkage to presentation/application targets.
-- [ ] Render aggregate/per-core CPU, RAM/swap, and every required process column with units and explicit data states.
-- [ ] Add navigation, scrolling, sorting, filter editing, and discoverable help; record exact key bindings/layout.
-- [ ] Add details and long-command-line scrolling with safe control-byte rendering and preserved argument boundaries.
-- [ ] Handle empty/error states and terminal resizing, including insufficient space, without relying only on color.
-- [ ] Restore terminal state on quit and orderly SIGINT/SIGTERM using flag-only signal handlers.
-- [ ] Connect an initial live snapshot and input loop; use fixture snapshots for edge states without continuous refresh yet.
-- [ ] Test pure formatting/safe-text/view behavior automatically where applicable.
-- [ ] Manually verify all interactions, long details, resize, errors, quit, and interruption; record results.
-- [ ] Build, run all tests, and record the milestone report.
+- [x] Implement RAII ncurses/window ownership and clear initialization errors; restrict ncurses linkage to presentation/application targets.
+- [x] Render aggregate/per-core CPU, RAM/swap, and every required process column with units and explicit data states.
+- [x] Add navigation, scrolling, sorting, filter editing, and discoverable help; record exact key bindings/layout.
+- [x] Add details and long-command-line scrolling with safe control-byte rendering and preserved argument boundaries.
+- [x] Handle empty/error states and terminal resizing, including insufficient space, without relying only on color.
+- [x] Restore terminal state on quit and orderly SIGINT/SIGTERM using flag-only signal handlers.
+- [x] Connect an initial live snapshot and input loop; use fixture snapshots for edge states without continuous refresh yet.
+- [x] Test pure formatting/safe-text/view behavior automatically where applicable.
+- [x] Manually verify all interactions, long details, resize, errors, quit, and interruption; record results.
+- [x] Build, run all tests, and record the milestone report.
 
 **Definition of Done:** Required UI behavior works on supplied snapshots and cleanup is verified. The executable is an explicitly non-refreshing checkpoint, not the finished MVP.
 

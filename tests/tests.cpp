@@ -1,3 +1,4 @@
+#include "monitor/presentation.hpp"
 #include "monitor/view_logic.hpp"
 #include "monitor/process_monitor.hpp"
 #include <filesystem>
@@ -218,6 +219,17 @@ void view_tests() {
     check(reconcile_selection(ProcessIdentity{11,100},rows,view).has_value(), "selection survives reordering");
     check(!reconcile_selection(ProcessIdentity{99,100},rows,view), "gone selection cleared");
 }
+void presentation_tests() {
+    using namespace monitor;
+    check(safe_text("a\x1b[31m\n") == "a\\x1b[31m\\x0a", "terminal controls escaped");
+    check(format_bytes(1024) == "1.0 KiB", "binary formatting");
+    check(format_percentage({Availability::pending,0}) == "pending", "pending label");
+    check(format_percentage({Availability::valid,200}) == "200.0%", "process percent not clamped");
+    check(format_arguments({"a b","", "c"}) == "\"a b\" \"\" \"c\"", "quoted argument boundaries");
+    auto lines=wrap_text("1234567",3);
+    check(lines==std::vector<std::string>({"123","456","7"}), "long text wrapping without loss");
+    check(wrap_text("abc",0).empty(), "zero width guarded");
+}
 void live_tests() {
     using namespace monitor;
     SystemMonitor monitor;
@@ -249,6 +261,7 @@ int main(int argc, char**) {
         process_cpu_tests();
         details_tests();
         view_tests();
+        presentation_tests();
         if (argc > 1) live_tests();
         std::cout << "All checks passed\n";
         return 0;
