@@ -1,3 +1,6 @@
+#include "monitor/system_monitor.hpp"
+#include <fstream>
+#include <iterator>
 #include "monitor/parsing.hpp"
 #include "monitor/metrics.hpp"
 #include <cmath>
@@ -44,10 +47,42 @@ void memory_tests() {
     check(!parse_memory("MemTotal: 10 kB\nMemTotal: 20 kB").total, "duplicate field");
     check(!memory_usage(parse_memory("MemTotal: 1 kB\nMemAvailable: 2 kB")).ram, "invalid available");
 }
-int main() {
+void system_tests() {
+    using namespace monitor;
+    SystemMonitor monitor;
+    Result<std::string> cpu{"cpu 1 0 0 9 0 0 0 0\ncpu5 1 0 0 9 0 0 0 0", {}};
+    Result<std::string> mem{"MemTotal: 100 kB\nMemAvailable: 20 kB", {}};
+    auto a = monitor.update(cpu, mem, {});
+    check(a.cpus.at(-1).state == Availability::pending && a.memory.ram, "first system sample");
+    cpu.value = "cpu 2 0 0 18 0 0 0 0";
+    auto b = monitor.update(cpu, mem, {});
+    check(b.cpus.size() == 1 && b.cpus.at(-1).value == 10, "core pruning/system delta");
+    b = monitor.update({{}, "denied"}, mem, {});
+    check(b.cpus.empty() && b.cpu_error == "denied" && b.memory.ram, "isolated source failure");
+    b = monitor.update(cpu, {{}, "gone"}, {});
+    check(b.cpus.at(-1).state == Availability::pending && !b.memory.ram, "recovery fresh baseline");
+    b = monitor.update(cpu, mem, {});
+    check(b.cpus.at(-1).state == Availability::unavailable, "invalid pair");
+    b = monitor.update(cpu, mem, {});
+    check(b.cpus.at(-1).state == Availability::pending, "invalid pair resets baseline");
+}
+void live_tests() {
+    using namespace monitor;
+    SystemMonitor monitor;
+    auto a = monitor.sample();
+    auto b = monitor.sample();
+    check(a.cpu_error.empty() && b.cpu_error.empty() && a.memory.ram, "live system sources");
+    std::ifstream input("/proc/meminfo");
+    std::string raw{std::istreambuf_iterator<char>(input), {}};
+    check(a.memory.ram.value->total == parse_memory(raw).total, "live total memory agrees with source");
+    check(!b.cpus.empty(), "live CPU enumeration");
+}
+int main(int argc, char**) {
     try {
         cpu_tests();
         memory_tests();
+        system_tests();
+        if (argc > 1) live_tests();
         std::cout << "All checks passed\n";
         return 0;
     } catch (const std::exception& error) {

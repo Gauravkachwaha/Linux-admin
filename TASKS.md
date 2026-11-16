@@ -12,7 +12,7 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 3 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 4 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
@@ -63,17 +63,17 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 4 — SystemMonitor Integration
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** Milestones 2–3.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** SystemMonitor recovery/core-pruning tests passed. Non-root live test read CPU/memory twice and compared total RAM directly with /proc/meminfo. Configure/build and both CTest entries passed, no warnings or blockers.
 
-- [ ] Implement scoped read-only system-source collection, once per source per sample.
-- [ ] Publish structured CPU/RAM/swap snapshots with timestamps, boot time, and source errors.
-- [ ] Maintain aggregate/core baselines by identity and prune disappeared cores.
-- [ ] Clear failed baselines and establish fresh pending samples on recovery.
-- [ ] Test success/failure/recovery, independent source errors, core changes, and pruning using supplied values/results.
-- [ ] Check repeated live readings as a non-root user against direct source data, allowing for sampling-time differences.
-- [ ] Build, run all tests, and record live-check results and the milestone report.
+- [x] Implement scoped read-only system-source collection, once per source per sample.
+- [x] Publish structured CPU/RAM/swap snapshots with timestamps, boot time, and source errors.
+- [x] Maintain aggregate/core baselines by identity and prune disappeared cores.
+- [x] Clear failed baselines and establish fresh pending samples on recovery.
+- [x] Test success/failure/recovery, independent source errors, core changes, and pruning using supplied values/results.
+- [x] Check repeated live readings as a non-root user against direct source data, allowing for sampling-time differences.
+- [x] Build, run all tests, and record live-check results and the milestone report.
 
 **Definition of Done:** Live snapshots and deterministic recovery behavior work; failures remain contextual and isolated. No recurring application loop or terminal presentation is added.
 
