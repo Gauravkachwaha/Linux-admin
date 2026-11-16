@@ -14,6 +14,7 @@ using Counter = std::uint64_t;
 template<class T> struct Result {
     std::optional<T> value;
     std::string error;
+    int error_number{};
     explicit operator bool() const { return value.has_value(); }
 };
 enum class Availability { valid, pending, unavailable };
@@ -59,6 +60,14 @@ struct ProcessRow {
 };
 struct ProcessSnapshot {
     std::vector<ProcessRow> rows;
+    std::string error;
+};
+enum class DetailState { valid, gone, unavailable, malformed };
+struct ProcessDetails {
+    ProcessIdentity identity;
+    DetailState state{DetailState::unavailable};
+    std::vector<std::string> arguments;
+    std::string start_time;
     std::string error;
 };
 }

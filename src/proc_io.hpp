@@ -19,7 +19,7 @@ private:
 };
 inline Result<std::string> read_file(const std::string& path, int directory = AT_FDCWD) {
     FileDescriptor fd(::openat(directory, path.c_str(), O_RDONLY | O_CLOEXEC));
-    if (fd.get() < 0) return {{}, path + ": " + std::strerror(errno)};
+    if (fd.get() < 0) return {{}, path + ": " + std::strerror(errno), errno};
     std::string text;
     char buffer[4096];
     for (;;) {
@@ -27,7 +27,7 @@ inline Result<std::string> read_file(const std::string& path, int directory = AT
         if (size == 0) return {std::move(text), {}};
         if (size < 0) {
             if (errno == EINTR) continue;
-            return {{}, path + ": " + std::strerror(errno)};
+            return {{}, path + ": " + std::strerror(errno), errno};
         }
         text.append(buffer, static_cast<std::size_t>(size));
     }

@@ -12,7 +12,7 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 6 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 7 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
@@ -113,18 +113,18 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 7 — Process Details
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** Milestones 4–6.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** Details tests passed for argument boundaries/long data, permission denial, gone/malformed/empty states, identity mismatch, ticks/time overflow and uptime fallback. Warning-clean build and both CTest entries passed. Terminal rendering remains scheduled for milestone 9.
 
-- [ ] Read complete selected-process `cmdline` contents with directory-relative access and identity revalidation.
-- [ ] Parse NUL-separated arguments while preserving boundaries and valid empty content.
-- [ ] Calculate start epoch from boot time/start ticks and provide time-zone-labeled formatting.
-- [ ] Implement and label the approximate uptime fallback when boot time is unavailable.
-- [ ] Distinguish gone, inaccessible, malformed, and valid-empty results; retain only currently requested details.
-- [ ] Test empty/multiple/long arguments, control bytes, inaccessible/disappeared processes, and PID reuse during collection.
-- [ ] Test non-default tick rates, overflow, fixed start-time calculations, and uptime fallback with fixed inputs.
-- [ ] Build, run all tests, and record the milestone report.
+- [x] Read complete selected-process `cmdline` contents with directory-relative access and identity revalidation.
+- [x] Parse NUL-separated arguments while preserving boundaries and valid empty content.
+- [x] Calculate start epoch from boot time/start ticks and provide time-zone-labeled formatting.
+- [x] Implement and label the approximate uptime fallback when boot time is unavailable.
+- [x] Distinguish gone, inaccessible, malformed, and valid-empty results; retain only currently requested details.
+- [x] Test empty/multiple/long arguments, control bytes, inaccessible/disappeared processes, and PID reuse during collection.
+- [x] Test non-default tick rates, overflow, fixed start-time calculations, and uptime fallback with fixed inputs.
+- [x] Build, run all tests, and record the milestone report.
 
 **Definition of Done:** Identity-safe details are prepared and tested without a terminal. No stale details transfer to reused PIDs; actual rendering/scrolling remains in Milestone 9.
 

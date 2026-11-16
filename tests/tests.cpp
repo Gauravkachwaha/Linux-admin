@@ -135,6 +135,39 @@ void process_cpu_tests() {
     check(send(reuse).rows[0].cpu.state == Availability::pending, "tracker invalid resets");
     check(resolve_user(std::numeric_limits<unsigned int>::max()) == std::to_string(std::numeric_limits<unsigned int>::max()), "unknown UID numeric fallback");
 }
+void details_tests() {
+    using namespace monitor;
+    check(parse_cmdline("").empty(), "empty command is valid");
+    const std::string raw("one\0two words\0\0",15);
+    auto args = parse_cmdline(raw);
+    check(args.size() == 3 && args[1] == "two words" && args[2].empty(), "argument boundaries/empty argument");
+    check(parse_cmdline(std::string(100000,'x')).front().size() == 100000, "long command retained");
+    check(parse_cmdline("\x1b[31m").front()[0] == '\x1b', "parser preserves control bytes for renderer");
+    check(start_epoch(500,250,1000) == 1002 && !start_epoch(1,0,1000), "start tick conversion");
+    check(!start_epoch(std::numeric_limits<Counter>::max(),1,1e20), "start overflow");
+    check(approximate_boot(2000,100) == 1900 && !approximate_boot(1,2), "boot fallback");
+    check(parse_uptime("123.5 22.0") == 123.5 && !parse_uptime("nan 1") && !parse_uptime("-1 0"), "uptime validation");
+    check(format_start(1000) != "unavailable", "timezone formatting");
+    auto path = std::filesystem::temp_directory_path() / ("monitor-details-"+std::to_string(::getpid()));
+    std::filesystem::create_directories(path/"42");
+    { std::ofstream(path/"42"/"stat") << process_fixture(); }
+    { std::ofstream file(path/"42"/"cmdline",std::ios::binary); file.write(raw.data(),static_cast<std::streamsize>(raw.size())); }
+    ProcessMonitor monitor({100,4096},path.string());
+    auto d = monitor.read_details({42,100},1000);
+    check(d.state == DetailState::valid && d.arguments == args, "details fixture");
+    check(monitor.read_details({42,101},1000).state == DetailState::gone, "details stale identity");
+    std::filesystem::permissions(path/"42"/"cmdline", std::filesystem::perms::none);
+    check(monitor.read_details({42,100},1000).state == DetailState::unavailable, "permission denial details");
+    std::filesystem::permissions(path/"42"/"cmdline", std::filesystem::perms::owner_all);
+    { std::ofstream(path/"42"/"cmdline") << ""; }
+    check(monitor.read_details({42,100},1000).arguments.empty(), "empty details distinct");
+    { std::ofstream(path/"uptime") << "100.0 1.0"; }
+    check(monitor.read_details({42,100},{}).start_time.find("approximate") != std::string::npos, "details uptime fallback");
+    { std::ofstream(path/"42"/"stat") << "bad"; }
+    check(monitor.read_details({42,100},1000).state == DetailState::malformed, "malformed details");
+    std::filesystem::remove_all(path);
+    check(monitor.read_details({42,100},1000).state == DetailState::gone, "gone details");
+}
 void live_tests() {
     using namespace monitor;
     SystemMonitor monitor;
@@ -164,6 +197,7 @@ int main(int argc, char**) {
         system_tests();
         process_parser_tests();
         process_cpu_tests();
+        details_tests();
         if (argc > 1) live_tests();
         std::cout << "All checks passed\n";
         return 0;

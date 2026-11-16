@@ -3,6 +3,7 @@
 #include <sstream>
 #include <limits>
 #include <set>
+#include <cmath>
 
 namespace monitor {
 namespace {
@@ -95,5 +96,21 @@ std::optional<unsigned int> parse_uid(std::string_view text) {
         return {};
     }
     return {};
+}
+std::vector<std::string> parse_cmdline(std::string_view text) {
+    std::vector<std::string> arguments;
+    while (!text.empty()) {
+        const auto end = text.find('\0');
+        if (end == std::string_view::npos) { arguments.emplace_back(text); break; }
+        arguments.emplace_back(text.substr(0,end));
+        text.remove_prefix(end+1);
+    }
+    return arguments;
+}
+std::optional<double> parse_uptime(std::string_view text) {
+    const auto end = text.find_first_of(" \t\r\n");
+    double value{};
+    if (!number(text.substr(0,end),value) || !std::isfinite(value) || value < 0) return {};
+    return value;
 }
 }

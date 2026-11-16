@@ -89,4 +89,60 @@ ProcessSnapshot ProcessMonitor::update(const Result<std::vector<ProcessRecord>>&
     users_ = std::move(users);
     return snapshot;
 }
+ProcessDetails ProcessMonitor::read_details(ProcessIdentity identity, std::optional<Counter> boot_time) const {
+    ProcessDetails details;
+    details.identity = identity;
+    const auto gone = [](int error) { return error == ENOENT || error == ESRCH || error == ENOTDIR; };
+    detail::FileDescriptor directory(::open((root_+"/"+std::to_string(identity.pid)).c_str(),
+                                           O_RDONLY | O_DIRECTORY | O_CLOEXEC | O_NOFOLLOW));
+    if (directory.get() < 0) {
+        details.state = gone(errno) ? DetailState::gone : DetailState::unavailable;
+        details.error = std::strerror(errno);
+        return details;
+    }
+    const auto verify = [&]() {
+        auto text = detail::read_file("stat",directory.get());
+        if (!text) {
+            details.state = gone(text.error_number) ? DetailState::gone : DetailState::unavailable;
+            details.error = text.error;
+            return false;
+        }
+        auto parsed = parse_process_stat(*text.value,identity.pid);
+        if (!parsed) { details.state = DetailState::malformed; details.error = parsed.error; return false; }
+        if (parsed.value->identity != identity) {
+            details.state = DetailState::gone; details.error = "process identity changed"; return false;
+        }
+        return true;
+    };
+    if (!verify()) return details;
+    const auto command = detail::read_file("cmdline",directory.get());
+    if (!verify()) return details;
+    if (!command) {
+        details.state = gone(command.error_number) ? DetailState::gone : DetailState::unavailable;
+        details.error = command.error;
+        return details;
+    }
+    details.state = DetailState::valid;
+    details.arguments = parse_cmdline(*command.value);
+    std::optional<double> boot;
+    bool approximate = false;
+    if (boot_time) boot = static_cast<double>(*boot_time);
+    else {
+        const auto uptime_text = detail::read_file(root_+"/uptime");
+        if (uptime_text) {
+            const auto uptime = parse_uptime(*uptime_text.value);
+            if (uptime) {
+                const double now = std::chrono::duration<double>(std::chrono::system_clock::now().time_since_epoch()).count();
+                boot = approximate_boot(now,*uptime);
+                approximate = true;
+            }
+        }
+    }
+    details.start_time = "unavailable";
+    if (boot) {
+        const auto epoch = start_epoch(identity.start_ticks,constants_.ticks,*boot);
+        if (epoch) details.start_time = format_start(*epoch) + (approximate ? " (approximate)" : "");
+    }
+    return details;
+}
 }

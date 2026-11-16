@@ -10,6 +10,7 @@ public:
     Result<std::vector<ProcessRecord>> collect(const volatile std::sig_atomic_t* stop = nullptr) const;
     ProcessSnapshot sample(const volatile std::sig_atomic_t* stop = nullptr);
     ProcessSnapshot update(const Result<std::vector<ProcessRecord>>& records);
+    ProcessDetails read_details(ProcessIdentity identity, std::optional<Counter> boot_time) const;
     void reset() { previous_.clear(); }
 private:
     std::map<ProcessIdentity, ProcessRecord> previous_;

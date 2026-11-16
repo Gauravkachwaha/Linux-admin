@@ -50,4 +50,22 @@ Percentage process_cpu(const ProcessRecord& current, const ProcessRecord* previo
     if (!std::isfinite(value)) return {};
     return {Availability::valid, value};
 }
+std::optional<std::time_t> start_epoch(Counter start_ticks, long ticks, double boot_epoch) {
+    if (ticks <= 0 || !std::isfinite(boot_epoch) || boot_epoch < 0) return {};
+    const long double epoch = static_cast<long double>(boot_epoch) +
+                              static_cast<long double>(start_ticks) / static_cast<long double>(ticks);
+    if (epoch > static_cast<long double>(std::numeric_limits<std::time_t>::max())) return {};
+    return static_cast<std::time_t>(epoch);
+}
+std::optional<double> approximate_boot(double realtime, double uptime) {
+    if (!std::isfinite(realtime) || !std::isfinite(uptime) || uptime < 0 || realtime < uptime) return {};
+    return realtime - uptime;
+}
+std::string format_start(std::time_t epoch) {
+    std::tm local{};
+    char output[96]{};
+    if (!::localtime_r(&epoch,&local) || std::strftime(output,sizeof(output),"%Y-%m-%d %H:%M:%S %Z (%z)",&local) == 0)
+        return "unavailable";
+    return output;
+}
 }
