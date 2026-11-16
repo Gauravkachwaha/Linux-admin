@@ -28,4 +28,11 @@ MemorySnapshot memory_usage(const MemoryFields& fields) {
     };
     return {group(fields.total, fields.available), group(fields.swap_total, fields.swap_free)};
 }
+bool valid_constants(SystemConstants constants) { return constants.ticks > 0 && constants.page_size > 0; }
+std::optional<Counter> rss_bytes(std::int64_t pages, long page_size) {
+    if (pages < 0 || page_size <= 0) return {};
+    const auto count = static_cast<Counter>(pages), size = static_cast<Counter>(page_size);
+    if (count > std::numeric_limits<Counter>::max() / size) return {};
+    return count * size;
+}
 }

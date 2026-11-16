@@ -12,7 +12,7 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 4 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 5 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
@@ -79,18 +79,18 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 5 — Process Parsing and Identity
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** Milestones 1–4.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** Process parser/identity, effective UID, page conversion, invalid constants and fixture collection checks passed. Fixture disappearance/missing status and non-root live enumeration (including self) verified. Warning-clean build and both CTest entries passed. No blockers.
 
-- [ ] Enumerate numeric `/proc` directories and establish ProcessMonitor's scoped collection foundation.
-- [ ] Parse complete process `stat` records, preserving names with spaces/parentheses, and effective UID from `status`.
-- [ ] Extract PID, PPID, name, state, CPU ticks, RSS pages, threads, and start ticks; define PID/start-tick identity.
-- [ ] Validate `sysconf` tick/page values and implement checked RSS conversion.
-- [ ] Use directory-relative reads and revalidate identity; skip vanished/identity-invalid records and label optional inaccessible data.
-- [ ] Test complex names, truncated/malformed records, trailing fields, missing UID, PID mismatch/reuse, negative RSS, conversion overflow, and invalid/non-default constants.
-- [ ] Verify non-root enumeration and graceful disappearance during collection.
-- [ ] Build, run all tests, and record the milestone report.
+- [x] Enumerate numeric `/proc` directories and establish ProcessMonitor's scoped collection foundation.
+- [x] Parse complete process `stat` records, preserving names with spaces/parentheses, and effective UID from `status`.
+- [x] Extract PID, PPID, name, state, CPU ticks, RSS pages, threads, and start ticks; define PID/start-tick identity.
+- [x] Validate `sysconf` tick/page values and implement checked RSS conversion.
+- [x] Use directory-relative reads and revalidate identity; skip vanished/identity-invalid records and label optional inaccessible data.
+- [x] Test complex names, truncated/malformed records, trailing fields, missing UID, PID mismatch/reuse, negative RSS, conversion overflow, and invalid/non-default constants.
+- [x] Verify non-root enumeration and graceful disappearance during collection.
+- [x] Build, run all tests, and record the milestone report.
 
 **Definition of Done:** Readable records provide required raw fields and trustworthy identities; one inaccessible or vanished process does not abort enumeration. CPU history and details remain deferred.
 

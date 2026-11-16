@@ -62,4 +62,38 @@ MemoryFields parse_memory(std::string_view text) {
     }
     return result;
 }
+Result<ProcessStat> parse_process_stat(std::string_view text, int expected_pid) {
+    const auto open = text.find('('), close = text.rfind(')');
+    if (open == std::string_view::npos || close == std::string_view::npos || close <= open)
+        return {{}, "invalid process name delimiters"};
+    auto prefix = text.substr(0, open);
+    while (!prefix.empty() && prefix.back() == ' ') prefix.remove_suffix(1);
+    ProcessStat result;
+    if (!number(prefix, result.identity.pid) || result.identity.pid <= 0 || result.identity.pid != expected_pid)
+        return {{}, "PID mismatch"};
+    result.name = text.substr(open + 1, close - open - 1);
+    std::istringstream suffix{std::string(text.substr(close + 1))};
+    std::vector<std::string> fields;
+    for (std::string token; suffix >> token;) fields.push_back(std::move(token));
+    if (fields.size() < 22 || fields[0].size() != 1 ||
+        !number(fields[1], result.ppid) || result.ppid < 0 ||
+        !number(fields[11], result.user_ticks) || !number(fields[12], result.system_ticks) ||
+        !number(fields[17], result.threads) || !number(fields[19], result.identity.start_ticks) ||
+        !number(fields[21], result.rss_pages)) return {{}, "missing/invalid process fields"};
+    result.state = fields[0][0];
+    return {std::move(result), {}};
+}
+std::optional<unsigned int> parse_uid(std::string_view text) {
+    std::istringstream input{std::string(text)};
+    for (std::string line; std::getline(input, line);) {
+        std::istringstream fields(line);
+        std::string key, real, effective;
+        fields >> key;
+        if (key != "Uid:") continue;
+        unsigned int value{};
+        if (fields >> real >> effective && number(effective, value)) return value;
+        return {};
+    }
+    return {};
+}
 }

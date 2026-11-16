@@ -2,7 +2,6 @@
 #include "monitor/types.hpp"
 #include <chrono>
 namespace monitor {
-using Clock = std::chrono::steady_clock;
 struct SystemSnapshot {
     std::map<int, Percentage> cpus;
     MemorySnapshot memory;

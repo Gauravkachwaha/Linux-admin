@@ -1,11 +1,15 @@
 #pragma once
 #include <array>
+#include <chrono>
+#include <compare>
+#include <vector>
 #include <cstdint>
 #include <map>
 #include <optional>
 #include <string>
 
 namespace monitor {
+using Clock = std::chrono::steady_clock;
 using Counter = std::uint64_t;
 template<class T> struct Result {
     std::optional<T> value;
@@ -28,4 +32,24 @@ struct MemoryFields {
 };
 struct MemoryUsage { Counter total{}, used{}, free{}; };
 struct MemorySnapshot { Result<MemoryUsage> ram, swap; };
+struct ProcessIdentity {
+    int pid{};
+    Counter start_ticks{};
+    auto operator<=>(const ProcessIdentity&) const = default;
+};
+struct ProcessStat {
+    ProcessIdentity identity;
+    int ppid{};
+    std::string name;
+    char state{};
+    Counter user_ticks{}, system_ticks{}, threads{};
+    std::int64_t rss_pages{};
+};
+struct ProcessRecord {
+    ProcessStat stat;
+    std::optional<unsigned int> uid;
+    std::optional<Counter> rss_bytes;
+    Clock::time_point timestamp;
+};
+struct SystemConstants { long ticks{}, page_size{}; };
 }

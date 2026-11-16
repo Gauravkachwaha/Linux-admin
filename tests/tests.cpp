@@ -1,3 +1,6 @@
+#include "monitor/process_monitor.hpp"
+#include <filesystem>
+#include <unistd.h>
 #include "monitor/system_monitor.hpp"
 #include <fstream>
 #include <iterator>
@@ -66,6 +69,40 @@ void system_tests() {
     b = monitor.update(cpu, mem, {});
     check(b.cpus.at(-1).state == Availability::pending, "invalid pair resets baseline");
 }
+std::string process_fixture(std::string name = "a (b) c)", int pid = 42, unsigned start = 100) {
+    // Fields 3..24; irrelevant fields deliberately remain zero.
+    return std::to_string(pid) + " (" + name + ") S 1 0 0 0 0 0 0 0 0 0 20 10 0 0 0 0 2 0 " +
+           std::to_string(start) + " 4096 3";
+}
+void process_parser_tests() {
+    using namespace monitor;
+    auto p = parse_process_stat(process_fixture(), 42);
+    check(p && p.value->name == "a (b) c)" && p.value->ppid == 1 && p.value->threads == 2, "complex process name and columns");
+    check(p.value->user_ticks == 20 && p.value->system_ticks == 10 && p.value->rss_pages == 3, "process stat positions");
+    check(!parse_process_stat(process_fixture(), 43), "PID mismatch");
+    check(parse_process_stat(process_fixture()+" 0 0 0",42).value.has_value(), "trailing stat fields");
+    check(!parse_process_stat("42 (broken) S 1",42), "truncated stat");
+    check(!parse_process_stat("42 broken S 1",42), "missing name delimiters");
+    check(parse_process_stat(process_fixture("x",42,101),42).value->identity != p.value->identity, "PID reuse identity");
+    check(parse_uid("Name: a\nUid: 1 2 3 4") == 2, "effective UID");
+    check(!parse_uid("Uid: 1 bad 3 4") && !parse_uid("Name: x"), "missing malformed UID");
+    check(rss_bytes(3,8192) == 24576 && !rss_bytes(-1,4096) && !rss_bytes(1,0), "page conversion");
+    check(!rss_bytes(std::numeric_limits<std::int64_t>::max(),4096), "RSS overflow");
+    check(!valid_constants({0,4096}) && !valid_constants({100,-1}), "invalid constants");
+    auto path = std::filesystem::temp_directory_path() / ("monitor-fixture-"+std::to_string(::getpid()));
+    std::filesystem::create_directories(path / "42");
+    { std::ofstream(path/"42"/"stat") << process_fixture(); }
+    { std::ofstream(path/"42"/"status") << "Uid: 1 2 3 4\n"; }
+    std::filesystem::create_directories(path/"43"); // disappeared before stat read
+    ProcessMonitor collector({100,4096}, path.string());
+    auto records = collector.collect();
+    check(records && records.value->size() == 1 && records.value->front().uid == 2, "fixture collection skips vanished entry");
+    std::filesystem::remove(path/"42"/"status");
+    records = collector.collect();
+    check(records && records.value->size() == 1 && !records.value->front().uid, "missing status keeps process");
+    std::filesystem::remove_all(path);
+    check(!collector.collect(), "directory failure distinct from empty");
+}
 void live_tests() {
     using namespace monitor;
     SystemMonitor monitor;
@@ -76,12 +113,19 @@ void live_tests() {
     std::string raw{std::istreambuf_iterator<char>(input), {}};
     check(a.memory.ram.value->total == parse_memory(raw).total, "live total memory agrees with source");
     check(!b.cpus.empty(), "live CPU enumeration");
+    ProcessMonitor processes(system_constants());
+    auto records = processes.collect();
+    check(records && !records.value->empty(), "live process enumeration");
+    bool self = false;
+    for (const auto& record : *records.value) if (record.stat.identity.pid == ::getpid()) self = true;
+    check(self, "own process visible");
 }
 int main(int argc, char**) {
     try {
         cpu_tests();
         memory_tests();
         system_tests();
+        process_parser_tests();
         if (argc > 1) live_tests();
         std::cout << "All checks passed\n";
         return 0;
