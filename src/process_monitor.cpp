@@ -6,6 +6,7 @@
 #include <dirent.h>
 #include <memory>
 #include <stdexcept>
+#include <pwd.h>
 
 namespace monitor {
 SystemConstants system_constants() {
@@ -52,5 +53,40 @@ Result<std::vector<ProcessRecord>> ProcessMonitor::collect(const volatile std::s
                            rss_bytes(stat.value->rss_pages, constants_.page_size), timestamp});
     }
     return {std::move(records), {}};
+}
+std::string resolve_user(unsigned int uid) {
+    std::vector<char> buffer(1024);
+    passwd entry{};
+    passwd* result = nullptr;
+    for (;;) {
+        const int status = ::getpwuid_r(uid, &entry, buffer.data(), buffer.size(), &result);
+        if (status == 0 && result && result->pw_name) return result->pw_name;
+        if (status != ERANGE || buffer.size() >= 1024*1024) return std::to_string(uid);
+        buffer.resize(buffer.size()*2);
+    }
+}
+ProcessSnapshot ProcessMonitor::sample(const volatile std::sig_atomic_t* stop) { return update(collect(stop)); }
+ProcessSnapshot ProcessMonitor::update(const Result<std::vector<ProcessRecord>>& records) {
+    ProcessSnapshot snapshot;
+    std::map<ProcessIdentity, ProcessRecord> next;
+    std::map<unsigned int, std::string> users;
+    if (!records) snapshot.error = records.error;
+    else for (const auto& record : *records.value) {
+        const auto old = previous_.find(record.stat.identity);
+        const auto cpu = process_cpu(record, old == previous_.end() ? nullptr : &old->second, constants_.ticks);
+        std::string user = "unavailable";
+        if (record.uid) {
+            auto cached = users_.find(*record.uid);
+            if (cached != users_.end()) user = cached->second;
+            else if (users.contains(*record.uid)) user = users.at(*record.uid);
+            else user = resolve_user(*record.uid);
+            users.emplace(*record.uid, user);
+        }
+        snapshot.rows.push_back({record, std::move(user), cpu});
+        if (cpu.state != Availability::unavailable) next.emplace(record.stat.identity, record);
+    }
+    previous_ = std::move(next);
+    users_ = std::move(users);
+    return snapshot;
 }
 }

@@ -52,4 +52,13 @@ struct ProcessRecord {
     Clock::time_point timestamp;
 };
 struct SystemConstants { long ticks{}, page_size{}; };
+struct ProcessRow {
+    ProcessRecord record;
+    std::string user;
+    Percentage cpu;
+};
+struct ProcessSnapshot {
+    std::vector<ProcessRow> rows;
+    std::string error;
+};
 }

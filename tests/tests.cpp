@@ -103,6 +103,38 @@ void process_parser_tests() {
     std::filesystem::remove_all(path);
     check(!collector.collect(), "directory failure distinct from empty");
 }
+void process_cpu_tests() {
+    using namespace monitor;
+    ProcessRecord first;
+    first.stat = *parse_process_stat(process_fixture(),42).value;
+    auto next = first;
+    next.timestamp += std::chrono::seconds(2);
+    next.stat.user_ticks += 400;
+    check(process_cpu(next,&first,100).value == 200, "process 200% using elapsed seconds");
+    check(process_cpu(first,nullptr,100).state == Availability::pending, "new process pending");
+    check(process_cpu(first,&first,100).state == Availability::unavailable, "zero process elapsed");
+    check(process_cpu(first,&next,100).state == Availability::unavailable, "process regression");
+    auto reuse = next;
+    reuse.stat.identity.start_ticks++;
+    check(process_cpu(reuse,&first,100).state == Availability::pending, "reused PID pending");
+    auto overflow = next;
+    overflow.stat.user_ticks = std::numeric_limits<Counter>::max();
+    check(process_cpu(overflow,&first,100).state == Availability::unavailable, "process sum overflow");
+    check(process_cpu(next,&first,0).state == Availability::unavailable, "invalid tick constant");
+    ProcessMonitor monitor({100,4096});
+    auto send = [&](const ProcessRecord& record) { return monitor.update({std::vector<ProcessRecord>{record}, {}}); };
+    check(send(first).rows[0].cpu.state == Availability::pending, "tracker first sample");
+    auto result = send(next);
+    check(result.rows[0].cpu.value == 200 && result.rows[0].user == "unavailable", "tracker rate/missing UID");
+    check(send(reuse).rows[0].cpu.state == Availability::pending, "tracker PID reuse");
+    check(!monitor.update({{}, "denied"}).error.empty(), "tracker source failure");
+    check(send(reuse).rows[0].cpu.state == Availability::pending, "tracker recovery baseline");
+    monitor.update({std::vector<ProcessRecord>{}, {}});
+    check(send(reuse).rows[0].cpu.state == Availability::pending, "tracker prunes gone process");
+    check(send(reuse).rows[0].cpu.state == Availability::unavailable, "tracker invalid pair");
+    check(send(reuse).rows[0].cpu.state == Availability::pending, "tracker invalid resets");
+    check(resolve_user(std::numeric_limits<unsigned int>::max()) == std::to_string(std::numeric_limits<unsigned int>::max()), "unknown UID numeric fallback");
+}
 void live_tests() {
     using namespace monitor;
     SystemMonitor monitor;
@@ -119,6 +151,11 @@ void live_tests() {
     bool self = false;
     for (const auto& record : *records.value) if (record.stat.identity.pid == ::getpid()) self = true;
     check(self, "own process visible");
+    auto snapshot = processes.sample();
+    auto again = processes.sample();
+    check(snapshot.error.empty() && !again.rows.empty(), "live process snapshots");
+    for (const auto& row : snapshot.rows) if (row.record.stat.identity.pid == ::getpid())
+        check(row.user == resolve_user(::geteuid()), "live user lookup");
 }
 int main(int argc, char**) {
     try {
@@ -126,6 +163,7 @@ int main(int argc, char**) {
         memory_tests();
         system_tests();
         process_parser_tests();
+        process_cpu_tests();
         if (argc > 1) live_tests();
         std::cout << "All checks passed\n";
         return 0;

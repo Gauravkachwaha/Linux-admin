@@ -12,7 +12,7 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 5 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 6 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
@@ -96,18 +96,18 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 6 — Process CPU Usage and Monitoring
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** Milestone 5; sampling conventions from Milestones 2 and 4.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** Process CPU/state tests cover 200%, elapsed times, overflow/regression, PID reuse, pruning and recovery; UID fallback checked. Repeated live snapshots/user resolution passed (live suite under 0.2s here). Warning-clean build and full CTest passed; synchronous NSS can still delay scans.
 
-- [ ] Calculate process CPU% from successive ticks and actual per-process monotonic timestamps adjacent to reads.
-- [ ] Track baselines by identity, handling new processes, regressions, failed reads, and recovery.
-- [ ] Resolve effective UIDs with numeric fallback and prune cached mappings to current users.
-- [ ] Publish complete process snapshots, distinguish enumeration failure from an empty list, and prune obsolete baselines.
-- [ ] Test known intervals, CPU above 100%, invalid elapsed time, overflow, regressions, first samples, PID reuse, and recovery.
-- [ ] Test pruning, missing user data, and numeric UID fallback.
-- [ ] Verify repeated live snapshots as a non-root user and note collection/lookup latency.
-- [ ] Build, run all tests, and record the milestone report.
+- [x] Calculate process CPU% from successive ticks and actual per-process monotonic timestamps adjacent to reads.
+- [x] Track baselines by identity, handling new processes, regressions, failed reads, and recovery.
+- [x] Resolve effective UIDs with numeric fallback and prune cached mappings to current users.
+- [x] Publish complete process snapshots, distinguish enumeration failure from an empty list, and prune obsolete baselines.
+- [x] Test known intervals, CPU above 100%, invalid elapsed time, overflow, regressions, first samples, PID reuse, and recovery.
+- [x] Test pruning, missing user data, and numeric UID fallback.
+- [x] Verify repeated live snapshots as a non-root user and note collection/lookup latency.
+- [x] Build, run all tests, and record the milestone report.
 
 **Definition of Done:** All process columns exist as structured data; CPU history never crosses identities, retained state reflects current data, and the core remains ncurses-independent.
 
