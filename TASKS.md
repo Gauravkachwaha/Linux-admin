@@ -12,7 +12,7 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 7 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 8 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
@@ -130,18 +130,18 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 8 — Sorting, Filtering, and Selection
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** Milestone 6; Milestone 7 for details invalidation.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** Pure view tests passed for all sort directions, ties/unavailable values, both filters, invalid/empty queries, reordered/hidden/gone/reused selections. Configure/build and full CTest passed without ncurses linkage or warnings. No blockers.
 
-- [ ] Extract small pure view helpers independent of ncurses, as allowed by the roadmap.
-- [ ] Implement CPU/RSS/PID sorting in both directions, ascending PID tie-breaks, and unavailable values last.
-- [ ] Implement exact-PID and case-insensitive name-substring filter modes and clearing.
-- [ ] Build view indices without retaining pointers into replaced snapshots.
-- [ ] Reconcile selection by identity, clearing hidden/gone selections and associated details while retaining sort/filter settings.
-- [ ] Test directions, ties, unavailable values, empty results, invalid PID input, case matching, and filter clearing.
-- [ ] Test reordered snapshots, filtering out selection, disappearance, and PID reuse.
-- [ ] Build, run all tests without a terminal dependency, and record the milestone report.
+- [x] Extract small pure view helpers independent of ncurses, as allowed by the roadmap.
+- [x] Implement CPU/RSS/PID sorting in both directions, ascending PID tie-breaks, and unavailable values last.
+- [x] Implement exact-PID and case-insensitive name-substring filter modes and clearing.
+- [x] Build view indices without retaining pointers into replaced snapshots.
+- [x] Reconcile selection by identity, clearing hidden/gone selections and associated details while retaining sort/filter settings.
+- [x] Test directions, ties, unavailable values, empty results, invalid PID input, case matching, and filter clearing.
+- [x] Test reordered snapshots, filtering out selection, disappearance, and PID reuse.
+- [x] Build, run all tests without a terminal dependency, and record the milestone report.
 
 **Definition of Done:** Deterministic view tests pass; settings persist and selection never silently moves to another process instance.
 

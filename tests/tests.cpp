@@ -1,3 +1,4 @@
+#include "monitor/view_logic.hpp"
 #include "monitor/process_monitor.hpp"
 #include <filesystem>
 #include <unistd.h>
@@ -168,6 +169,55 @@ void details_tests() {
     std::filesystem::remove_all(path);
     check(monitor.read_details({42,100},1000).state == DetailState::gone, "gone details");
 }
+void view_tests() {
+    using namespace monitor;
+    std::vector<ProcessRow> rows(3);
+    for (std::size_t i=0;i<rows.size();++i) {
+        rows[i].record.stat.identity = {static_cast<int>(i)+10,100};
+        rows[i].record.stat.name = i==0 ? "Alpha" : "beta";
+        rows[i].cpu = {Availability::valid,static_cast<double>(i)*10};
+        rows[i].record.rss_bytes = static_cast<Counter>(i)*1024;
+    }
+    ViewOptions options;
+    for (auto key : {SortKey::cpu,SortKey::memory,SortKey::pid}) {
+        options.sort=key;
+        for (bool ascending : {true,false}) {
+            options.ascending=ascending;
+            auto view=process_view(rows,options);
+            check(view.front()==(ascending ? 0U : 2U), "sort directions");
+        }
+    }
+    rows[0].cpu.state=Availability::unavailable;
+    rows[0].record.rss_bytes.reset();
+    rows[1].cpu.value=rows[2].cpu.value;
+    rows[1].record.rss_bytes=rows[2].record.rss_bytes;
+    for (auto key : {SortKey::cpu,SortKey::memory}) {
+        options.sort=key;
+        for(bool ascending : {true,false}) {
+            options.ascending=ascending;
+            check(process_view(rows,options)==std::vector<std::size_t>({1,2,0}), "ties/unavailable always last");
+        }
+    }
+    options.filter="ALp";
+    check(process_view(rows,options)==std::vector<std::size_t>{0}, "case-insensitive substring");
+    options.filter_mode=FilterMode::pid;
+    options.filter="1";
+    check(process_view(rows,options).empty(), "PID exact match");
+    options.filter="11";
+    auto view=process_view(rows,options);
+    check(view==std::vector<std::size_t>{1}, "PID match");
+    check(reconcile_selection(rows[1].record.stat.identity,rows,view).has_value(), "selection preserved");
+    check(!reconcile_selection(rows[0].record.stat.identity,rows,view), "hidden selection cleared");
+    check(!reconcile_selection(ProcessIdentity{11,99},rows,view), "reused PID selection cleared");
+    options.filter="bad";
+    check(process_view(rows,options).empty(), "invalid PID query");
+    options.filter.clear();
+    check(process_view(rows,options).size()==3 && process_view({},options).empty(), "clear filter/empty list");
+    std::swap(rows[0],rows[1]);
+    view=process_view(rows,options);
+    check(reconcile_selection(ProcessIdentity{11,100},rows,view).has_value(), "selection survives reordering");
+    check(!reconcile_selection(ProcessIdentity{99,100},rows,view), "gone selection cleared");
+}
 void live_tests() {
     using namespace monitor;
     SystemMonitor monitor;
@@ -198,6 +248,7 @@ int main(int argc, char**) {
         process_parser_tests();
         process_cpu_tests();
         details_tests();
+        view_tests();
         if (argc > 1) live_tests();
         std::cout << "All checks passed\n";
         return 0;

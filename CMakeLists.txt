@@ -5,7 +5,7 @@ function(monitor_warnings target)
   target_compile_options(${target} PRIVATE
     $<$<CXX_COMPILER_ID:GNU,Clang>:-Wall;-Wextra;-Wpedantic;-Wconversion;-Wshadow>)
 endfunction()
-add_library(monitor_core src/parsing.cpp src/metrics.cpp src/system_monitor.cpp src/process_monitor.cpp)
+add_library(monitor_core src/parsing.cpp src/metrics.cpp src/system_monitor.cpp src/process_monitor.cpp src/view_logic.cpp)
 monitor_warnings(monitor_core)
 target_compile_features(monitor_core PUBLIC cxx_std_20)
 target_include_directories(monitor_core PUBLIC include)
