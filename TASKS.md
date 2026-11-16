@@ -2,6 +2,8 @@
 
 `IMPLEMENTATION_PLAN.md` is the roadmap; this file records verified implementation progress. Scope and engineering decisions remain governed by `PRD.md`, `AGENTS.md`, and `ARCHITECTURE.md`.
 
+**Execution authorization:** The user explicitly authorized continuous implementation of all milestones, verification, and local commits without intermediate approvals. This overrides the pause rules below for this execution.
+
 ## Tracking rules
 
 Execute milestones in order, 1–11, with explicit user instruction before starting each one. Technical dependencies below supplement this execution order; they do not authorize skipping ahead. Keep changes read-only, single-process, single-threaded, and within the approved scope.
@@ -10,21 +12,21 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 0 of 11 milestones completed. No implementation or implementation tests have run.
+**Overall progress:** 1 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** None; approved documents and Linux/toolchain prerequisites.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** GCC 15.2, CMake 4.2.3, Ubuntu 26.04; ncurses 6.6 headers extracted under /tmp without root. Configure/build and CTest passed; intentional runner failure was detected, removed, and retested. Non-root executable smoke passed. No blockers.
 
-- [ ] Verify and record the Linux, C++20 compiler, CMake/CTest, and ncurses development environment.
-- [ ] Create the minimal project structure and application entry point with successful launch/exit only.
-- [ ] Configure target-scoped C++20, disable extensions, and enable all strict warnings specified in `AGENTS.md`.
-- [ ] Establish the reusable core target and include paths; use an interface target until compiled logic exists, without dummy functions.
-- [ ] Register a release-safe explicit-failure test runner with CTest.
-- [ ] Verify CTest discovery and failure reporting using a temporary intentional failure, then remove it.
-- [ ] Configure/build, run CTest and non-root executable smoke checks, and record the milestone report.
+- [x] Verify and record the Linux, C++20 compiler, CMake/CTest, and ncurses development environment.
+- [x] Create the minimal project structure and application entry point with successful launch/exit only.
+- [x] Configure target-scoped C++20, disable extensions, and enable all strict warnings specified in `AGENTS.md`.
+- [x] Establish the reusable core target and include paths; use an interface target until compiled logic exists, without dummy functions.
+- [x] Register a release-safe explicit-failure test runner with CTest.
+- [x] Verify CTest discovery and failure reporting using a temporary intentional failure, then remove it.
+- [x] Configure/build, run CTest and non-root executable smoke checks, and record the milestone report.
 
 **Definition of Done:** Warning-clean build, successful ordinary-user launch/exit, and working CTest runner; no monitoring or UI implementation.
 
