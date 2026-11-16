@@ -12,7 +12,7 @@ Status values: **Not Started** (no implementation), **In Progress** (authorized 
 
 Every milestone's final verification task includes configuring/building and running CTest using the commands in `AGENTS.md`, resolving new warnings/failures, and reporting changed files, actual results, unrun checks, and known issues. Never mark a milestone Completed while required verification is incomplete. Stop after reporting; wait for instruction before proceeding.
 
-**Overall progress:** 1 of 11 milestones completed. See milestone evidence below.
+**Overall progress:** 2 of 11 milestones completed. See milestone evidence below.
 
 ## Milestone 1 — Project Foundation
 
@@ -32,17 +32,17 @@ Every milestone's final verification task includes configuring/building and runn
 
 ## Milestone 2 — CPU Data Parsing and Calculations
 
-**Status:** Not Started  
+**Status:** Completed  
 **Dependencies:** Milestone 1.  
-**Evidence / blockers:** Not yet assessed.
+**Evidence / blockers:** Pure CPU fixtures cover guest accounting, core IDs/changes, first/invalid samples, malformed fields and overflow. Warning-clean build, CTest and executable smoke passed. No blockers.
 
-- [ ] Add CPU counter and valid/pending/unavailable value types; convert the core target to a compiled library.
-- [ ] Parse aggregate/per-core `/proc/stat` records, numeric core IDs, and optional boot time using pure functions.
-- [ ] Calculate utilization from successive counters with idle plus I/O-wait treated as idle and no double-counted guest time.
-- [ ] Validate fields, ranges, sums, counter regressions, zero deltas, and impossible idle deltas.
-- [ ] Test known percentages, first samples, guest accounting, and reordered/added/removed cores using deterministic fixtures.
-- [ ] Test missing/malformed fields, invalid deltas, and overflow without live sources or clocks.
-- [ ] Build, run all tests and the existing executable smoke check, and record the milestone report.
+- [x] Add CPU counter and valid/pending/unavailable value types; convert the core target to a compiled library.
+- [x] Parse aggregate/per-core `/proc/stat` records, numeric core IDs, and optional boot time using pure functions.
+- [x] Calculate utilization from successive counters with idle plus I/O-wait treated as idle and no double-counted guest time.
+- [x] Validate fields, ranges, sums, counter regressions, zero deltas, and impossible idle deltas.
+- [x] Test known percentages, first samples, guest accounting, and reordered/added/removed cores using deterministic fixtures.
+- [x] Test missing/malformed fields, invalid deltas, and overflow without live sources or clocks.
+- [x] Build, run all tests and the existing executable smoke check, and record the milestone report.
 
 **Definition of Done:** Pure CPU parsing/calculations match independent expected results, distinguish pending/unavailable from zero, and handle core identities correctly. Live baseline ownership remains deferred.
 
